@@ -1,5 +1,7 @@
-use clap::{Parser, Subcommand, command};
-use movie1::handler::{handle_list, handle_login, handle_logout};
+use std::fs::DirEntry;
+
+use clap::{Parser, Subcommand, builder::Str, command};
+use movie1::handler::{handle_add, handle_list, handle_login, handle_logout};
 
 #[derive(Parser)]
 #[command(version, about = "Movie app", long_about = "Movie infomation app")]
@@ -20,6 +22,24 @@ enum Commands {
     Logout,
     /// list all the movies
     List,
+    /// Add a movie
+    Add {
+        /// The disc no. of the movie
+        #[arg(short, long)]
+        disc: usize,
+
+        /// The year when the movie was released
+        #[arg(short, long)]
+        year: String,
+
+        /// The title / file name of the movie
+        #[arg(short, long)]
+        title: String,
+
+        /// Optional remark of the movie
+        #[arg(short, long)]
+        remark: Option<String>,
+    },
 }
 
 fn main() {
@@ -30,6 +50,12 @@ fn main() {
         }
         Some(Commands::Logout) => handle_logout(),
         Some(Commands::List) => handle_list().unwrap(),
+        Some(Commands::Add {
+            disc,
+            year,
+            title,
+            remark,
+        }) => handle_add(disc, &year, &title, &remark).unwrap(),
         _ => {
             println!("No command provided");
         }
