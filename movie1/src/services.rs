@@ -1,8 +1,10 @@
 use std::error::Error;
+use std::fmt::format;
 use std::fs;
 use std::io;
 
 use crate::models::{Movie, Role, User};
+use unicode_width::UnicodeWidthStr;
 
 pub fn get_users() -> Vec<User> {
     vec![
@@ -50,6 +52,13 @@ pub fn list_movies(movies: &[Movie]) {
 
     movies.iter().for_each(|m| {
         let remark = m.remark.as_deref().unwrap_or("");
-        println!("{:<5}{:<7}{:<80}{:<15}", m.disc, m.year, m.title, remark);
+        let title = pad_display_width(&m.title, 80);
+        let remark = pad_display_width(remark, 15);
+        println!("{:<5}{:<7}{}{}", m.disc, m.year, title, remark);
     })
+}
+
+fn pad_display_width(s: &str, target_width: usize) -> String {
+    let width = UnicodeWidthStr::width(s);
+    format!("{}{}", s, " ".repeat(target_width.saturating_sub(width)))
 }
