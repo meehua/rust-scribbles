@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::services::get_users;
+use crate::services::{get_logged_in_role, get_users, login_success, logout};
 
 pub fn handle_login(username: &str) -> Result<(), Box<dyn Error>> {
     println!("User {} logged in", username);
@@ -13,6 +13,7 @@ pub fn handle_login(username: &str) -> Result<(), Box<dyn Error>> {
             Ok(password) => {
                 println!("password: {password}");
                 if user.password == password {
+                    login_success(&user.role)?;
                     println!("Login successful!");
                 } else {
                     println!("Incorrect password.");
@@ -26,4 +27,18 @@ pub fn handle_login(username: &str) -> Result<(), Box<dyn Error>> {
         println!("User not found.");
     }
     Ok(())
+}
+
+pub fn handle_logout() {
+    logout();
+    println!("Logged out successfully.")
+}
+
+pub fn handle_list() -> Result<(), Box<dyn Error>> {
+    match get_logged_in_role()? {
+        Some(_) => {}
+        None => {
+            println!("You need to log in to view the movie list.");
+        }
+    }
 }

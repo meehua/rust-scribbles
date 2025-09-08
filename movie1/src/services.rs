@@ -31,3 +31,7 @@ pub fn get_logged_in_role() -> Result<Option<Role>, Box<dyn Error>> {
         _ => Ok(None),
     }
 }
+
+pub fn logout() {
+    fs::remove_file(".session").unwrap_or_else(|_| println!("No user is logged in."));
+}
