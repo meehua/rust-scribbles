@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::services::{get_logged_in_role, get_users, login_success, logout};
+use crate::services::{self, get_logged_in_role, get_users, login_success, logout};
 
 pub fn handle_login(username: &str) -> Result<(), Box<dyn Error>> {
     println!("User {} logged in", username);
@@ -36,9 +36,13 @@ pub fn handle_logout() {
 
 pub fn handle_list() -> Result<(), Box<dyn Error>> {
     match get_logged_in_role()? {
-        Some(_) => {}
+        Some(_) => {
+            let movies = services::read_from_json()?;
+            services::list_movies(&movies);
+        }
         None => {
             println!("You need to log in to view the movie list.");
         }
     }
+    Ok(())
 }

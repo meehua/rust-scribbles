@@ -1,7 +1,8 @@
 use std::error::Error;
 use std::fs;
+use std::io;
 
-use crate::models::{Role, User};
+use crate::models::{Movie, Role, User};
 
 pub fn get_users() -> Vec<User> {
     vec![
@@ -34,4 +35,21 @@ pub fn get_logged_in_role() -> Result<Option<Role>, Box<dyn Error>> {
 
 pub fn logout() {
     fs::remove_file(".session").unwrap_or_else(|_| println!("No user is logged in."));
+}
+
+pub fn read_from_json() -> Result<Vec<Movie>, Box<dyn Error>> {
+    let file = fs::File::open("Movies.json")?;
+    let reader = io::BufReader::new(file);
+    let movies: Vec<Movie> = serde_json::from_reader(reader)?;
+    Ok(movies)
+}
+
+pub fn list_movies(movies: &[Movie]) {
+    println!("{:<5}{:<7}{:<80}{:<15}", "Disc", "Year", "Title", "Remark");
+    println!("{:-<110}", "");
+
+    movies.iter().for_each(|m| {
+        let remark = m.remark.as_deref().unwrap_or("");
+        println!("{:<5}{:<7}{:<80}{:<15}", m.disc, m.year, m.title, remark);
+    })
 }

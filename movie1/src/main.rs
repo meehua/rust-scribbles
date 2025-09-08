@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand, command};
-use movie1::handler::{handle_login, handle_logout};
+use movie1::handler::{handle_list, handle_login, handle_logout};
 
 #[derive(Parser)]
 #[command(version, about = "Movie app", long_about = "Movie infomation app")]
@@ -29,7 +29,7 @@ fn main() {
             handle_login(&username).unwrap();
         }
         Some(Commands::Logout) => handle_logout(),
-        Some(Commands::List) => handle_list(),
+        Some(Commands::List) => handle_list().unwrap(),
         _ => {
             println!("No command provided");
         }
