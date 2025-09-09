@@ -1,7 +1,7 @@
 use std::fs::DirEntry;
 
 use clap::{Parser, Subcommand, builder::Str, command};
-use movie1::handler::{handle_add, handle_list, handle_login, handle_logout};
+use movie1::handler::{handle_add, handle_delete, handle_list, handle_login, handle_logout};
 
 #[derive(Parser)]
 #[command(version, about = "Movie app", long_about = "Movie infomation app")]
@@ -40,6 +40,16 @@ enum Commands {
         #[arg(short, long)]
         remark: Option<String>,
     },
+    /// Delete a movie
+    Delete {
+        /// The disc no. of the movie
+        #[arg(short, long)]
+        disc: usize,
+
+        /// The index of the movie in the disc
+        #[arg(short, long)]
+        index: usize,
+    },
 }
 
 fn main() {
@@ -56,6 +66,7 @@ fn main() {
             title,
             remark,
         }) => handle_add(disc, &year, &title, &remark).unwrap(),
+        Some(Commands::Delete { disc, index }) => handle_delete(disc, index).unwrap(),
         _ => {
             println!("No command provided");
         }

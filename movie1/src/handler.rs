@@ -75,3 +75,15 @@ pub fn handle_add(
     }
     Ok(())
 }
+
+pub fn handle_delete(disc: usize, index: usize) -> Result<(), Box<dyn Error>> {
+    if let Some(Role::Admin) = get_logged_in_role()? {
+        let movies= services::read_from_json()?;
+        if let Some(movie)=movies.iter().filter(|m| m.disc==*disc).enumerate().find(|i| i==index).map(|(_,m)| m.clone()){
+            let left_movies=movies.into_iter().filter()
+        }
+    }else {
+        
+    }
+    Ok(())
+}
