@@ -30,6 +30,16 @@ pub struct Movie {
     pub remark: Option<String>,
 }
 
+impl PartialEq for Movie {
+    fn eq(&self, other: &Self) -> bool {
+        self.disc == other.disc
+            && self.year == other.year
+            && self.title == other.title
+            && self.remark == other.remark
+    }
+    
+}
+
 // impl Movie {   // 因为在结构体加了Default宏，自动实现new方法和Default trait，所以这俩段都用不上了
 //     pub fn new() -> Self {
 //         Movie {

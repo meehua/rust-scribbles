@@ -1,6 +1,4 @@
-use std::fs::DirEntry;
-
-use clap::{Parser, Subcommand, builder::Str, command};
+use clap::{Parser, Subcommand, command};
 use movie1::handler::{handle_add, handle_delete, handle_list, handle_login, handle_logout};
 
 #[derive(Parser)]
