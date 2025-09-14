@@ -2,7 +2,7 @@ use crate::{
     models::{Movie, Role},
     services::{self, get_logged_in_role, get_users, login_success, logout},
 };
-use std::error::Error;
+use std::{error::Error, io::{self, Write}};
 
 pub fn handle_login(username: &str) -> Result<(), Box<dyn Error>> {
     println!("User {} logged in", username);
@@ -94,6 +94,72 @@ pub fn handle_delete(disc: usize, index: usize) -> Result<(), Box<dyn Error>> {
             }
     }else {
         println!("You need to log in as Admin to delete a movie");
+    }
+    Ok(())
+}
+
+pub  fn handle_edit(disc: usize,index: usize)-> Result<(), Box<dyn Error>> {
+    if let Some(Role::Admin) = get_logged_in_role()?
+     {
+        let mut movies= services::read_from_json()?;
+        if let Some(movie)=movies
+            .iter_mut()// 生成可变的迭代器
+            .filter(|m| m.disc==disc) // 过滤出某碟片的所有电影
+            .enumerate() // 为每个元素生成索引
+            .find(|(i,_)| *i==index) // 寻找用户指定的索引数据
+            .map(|(_,m)| m ) // 返回该索引对应的影片信息
+            {
+                print!("Enter the new disc no.:");
+                io::stdout().flush()?; // 输出终端缓存区的数据（防止信息滞留，用户看不到）
+                let mut disc=String::new();
+                io::stdin().read_line(&mut disc)?;
+                let disc=disc.trim();
+                if let Ok(disc) = disc.parse(){
+                    movie.disc=disc;
+                }else{
+                    println!("Invalid disc number.");
+                    return Ok(());
+                }
+                print!("Enter the new year:");
+                io::stdout().flush()?;
+                let mut year=String::new();
+                io::stdin().read_line(&mut year)?;
+                let year=year.trim();
+                if year.parse::<usize>().ok().is_some(){
+                    movie.year=year.to_string();
+                }else{
+                    println!("Invalid year.");
+                    return Ok(());
+                }
+
+                print!("Enter the new title:");
+                io::stdout().flush()?;
+                let mut title=String::new();
+                io::stdin().read_line(&mut title)?;
+                let title=title.trim();
+                if !title.is_empty(){
+                    movie.title=title.to_string();
+                }else{
+                    println!("Invalid title.");
+                    return Ok(());
+                }
+
+                print!("Enter the new remark (optional):");
+                io::stdout().flush()?;
+                let mut remark=String::new();
+                io::stdin().read_line(&mut remark)?;
+                let remark=remark.trim();
+                if !remark.is_empty(){
+                    movie.remark=None;
+                }else{
+                    movie.remark=remark.to_string().into(); // into() 方法将数据自动转换为需要的类型
+                }
+
+                services::write_to_json(&movies)?;
+                println!("Movie modified.");
+            }
+    }else {
+        println!("You need to log in as Admin to edit a movie");
     }
     Ok(())
 }
