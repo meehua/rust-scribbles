@@ -15,36 +15,39 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }).collect();
 
-    let mut handles = vec![];
-    const CHUNK_SIZE:usize= 10; // 每个线程处理10个文件
-    let chunks = files.chunks(CHUNK_SIZE); // 将文件分块
-    for chunk in chunks {
-        let mut local_map= HashMap::new(); // 每个线程有自己的map
-        let chunk =chunk.to_vec(); // 克隆一份, 因为chunk是引用，而files活的不够长。
-        let handle =thread::spawn( move | |{
-            chunk.iter().filter_map(|p| fs::read_to_string(p).ok())
-            .for_each(|text|{
-                text.split_whitespace()
-                .for_each(|w|{
-                    let word = w
-                        .trim_matches(|c: char| c.is_ascii_punctuation())
-                        .to_lowercase();
-                    if !word.is_empty()  {
-                        *local_map.entry(word).or_insert(0) += 1;
-                    }
+    // Scoped threads 带作用域的线程，无需再将数据clone一份，优化性能
+    thread::scope(|s|{
+        const CHUNK_SIZE:usize= 10; // 每个线程处理10个文件
+        let chunks = files.chunks(CHUNK_SIZE); // 将文件分块
+        let mut handles = vec![];
+        for chunk in chunks {
+            let mut local_map= HashMap::new(); // 每个线程有自己的map
+            // let chunk =chunk.to_vec(); // 克隆一份, 因为chunk是引用，而files活的不够长。
+            let handle =s.spawn(move||{
+                chunk.iter().filter_map(|p| fs::read_to_string(p).ok())
+                .for_each(|text|{
+                    text.split_whitespace()
+                    .for_each(|w|{
+                        let word = w
+                            .trim_matches(|c: char| c.is_ascii_punctuation())
+                            .to_lowercase();
+                        if !word.is_empty()  {
+                            *local_map.entry(word).or_insert(0) += 1;
+                        }
+                    });
                 });
+                local_map
             });
-            local_map
-        });
-        handles.push(handle);
-    }
-
-    for h in handles{
-        let local_map = h.join().unwrap();
-        for(k,v) in local_map {
-            *map.entry(k).or_insert(0) += v;    // 将线程的局部map并到全局map
+            handles.push(handle);
         }
-    }
+
+        for h in handles{
+            let local_map = h.join().unwrap();
+            for(k,v) in local_map {
+                *map.entry(k).or_insert(0) += v;    // 将线程的局部map并到全局map
+            }
+    }});
+
     println!("Map count:{}", map.len()); // 打印不同单词的数量，即map的长度
 
     let mut vec:Vec<_>= map.iter().collect(); // 转为可变数组
